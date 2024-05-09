@@ -3,7 +3,6 @@
 const Image = require('../models/Image');
 const cloudinary = require('cloudinary').v2;
 
-
 exports.uploadImage = async (req, res) => {
     try {
         const result = await cloudinary.uploader.upload(req.file.path);
@@ -21,13 +20,48 @@ exports.uploadImage = async (req, res) => {
 
 exports.getAllImages = async (req, res) => {
     try {
-        const images = await Image.find();
-        res.json(images);
+        const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+        const limit = parseInt(req.query.limit) || 100; // Number of items per page, default is 10
+
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const totalImages = await Image.countDocuments();
+        const totalPages = Math.ceil(totalImages / limit);
+
+        const images = await Image.find().limit(limit).skip(startIndex);
+
+        // Pagination metadata
+        const pagination = {
+            currentPage: page,
+            totalPages: totalPages,
+            totalImages: totalImages
+        };
+
+        // Check if there's a next page
+        if (endIndex < totalImages) {
+            pagination.next = {
+                page: page + 1,
+                limit: limit
+            };
+        }
+
+        // Check if there's a previous page
+        if (startIndex > 0) {
+            pagination.previous = {
+                page: page - 1,
+                limit: limit
+            };
+        }
+
+        res.json({
+            images: images,
+            pagination: pagination
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
-
 
 exports.updateImageTitle = async (req, res) => {
     try {
@@ -57,5 +91,3 @@ exports.deleteImage = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
-// Implement other controller functions for update and delete operations

@@ -43,7 +43,7 @@ app.listen(PORT, () => {
 // Define cron job to hit the API every minute
 cron.schedule('* * * * *', () => {
     console.log('Cron job running...');
-    axios.get('https://image-yi4u.onrender.com/test')
+    axios.get('https://vercel-node-aby4.onrender.com/test')
         .then(response => {
             console.log(response.data);
         })
@@ -51,3 +51,5 @@ cron.schedule('* * * * *', () => {
             console.error('Error creating report:');
         });
 });
+
+
